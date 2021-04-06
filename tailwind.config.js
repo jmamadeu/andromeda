@@ -15,6 +15,9 @@ module.exports = {
         },
       },
     },
+    fontFamily: {
+      body: ['Roboto'],
+    },
   },
   variants: {
     extend: {},
