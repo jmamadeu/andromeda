@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useState } from 'react';
+import { forwardRef, useRef, useState } from 'react';
 
 import { GithubProfileList } from '../components';
 import GithubInputSearch from '../components/githubInpuSearch/githubInputSearch';
@@ -19,6 +19,7 @@ interface GithubUserProfileProps {
 
 export default function Home() {
   const [githubUsers, setGithubUsers] = useState<GithubUsersProps[] | null>([]);
+  const [userName, setUserName] = useState<string>('');
 
   const headers = {
     Authorization: `bearer `,
@@ -30,28 +31,47 @@ export default function Home() {
         Authorization: `bearer ${2}`,
       };
 
+      const organizationSchemaFields = `
+
+      `;
+
       const body = {
         query: `
-    query {
-      user(login: "${login}") {
-        name
-        contributionsCollection {
-          contributionCalendar {
-            colors
-            totalContributions
-            weeks {
-              contributionDays {
-                color
-                contributionCount
-                date
-                weekday
+        query {
+          organization(login: "alien-space") {
+            name
+            avatarUrl
+            login
+            memberStatuses (last: 10) {    
+              edges {
+                node {
+                  user {
+                    name
+                    avatarUrl
+                    login
+                    contributionsCollection {
+                      contributionCalendar {
+                        totalContributions
+                      }  
+                    }
+                  }
+                }
               }
-              firstDay
+            }  
+          }
+
+          user(login: "jmamadeu") {
+            name
+            avatarUrl
+            login
+            contributionsCollection {
+              contributionCalendar {
+              totalContributions
             }
           }
         }
-      }
-    }`,
+
+      }`,
       };
 
       const userProfile = await api.get<GithubUserProfileProps>(`/graphql`, {
@@ -92,6 +112,8 @@ export default function Home() {
     }
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   return (
     <div>
       <Head>
@@ -105,12 +127,17 @@ export default function Home() {
             <h1 className='text-gray-bold font-bold text-3xl'>
               Search for Github Users
             </h1>
+            {/* <input ref={inputRef} type='text' /> */}
 
             <GithubInputSearch
-              onChange={(e) => {
-                console.log(e.target.value);
+              value={userName}
+              onChange={(event) => {
+                console.log(event.target.value, 'teste');
 
-                fetchGithubUsers({ userName: 'jmamadeu' });
+                setUserName(event.target.value);
+              }}
+              onClickButton={() => {
+                // fetchGithubUsers({ userName: inputRef?.current?. });
               }}
             />
 
