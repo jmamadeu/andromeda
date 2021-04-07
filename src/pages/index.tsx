@@ -31,7 +31,8 @@ export default function Home() {
       };
 
       const body = {
-        query: `query {
+        query: `
+    query {
       user(login: "${login}") {
         name
         contributionsCollection {
