@@ -1,16 +1,18 @@
 import { FiChevronDown } from 'react-icons/fi';
 import { GithubProfileListProps } from './githubProfile.type';
 
+import Image from 'next/image';
+
 const GithubProfileList: React.FC<GithubProfileListProps> = ({
   style,
   type,
-  totalRecords,
+  data = [],
 }) => {
   return (
     <>
       <div className={`${style} w-full`}>
         <h4 className='uppercase font-bold mb-1'>
-          {type === 'USER' ? `Users` : 'Companies'} ( {totalRecords} )
+          {type === 'USER' ? `Users` : 'Companies'} ( {data.length} )
         </h4>
         <hr className='w-full h-1 bg-gray-bold' />
 
@@ -28,18 +30,34 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
           <hr style={{ height: 1.5 }} className='w-full bg-gray-semi' />
         </div>
 
-        <div className='mt-2 flex justify-between items-center'>
-          <div className='flex items-center'>
-            {<div className='rounded-full p-6 bg-gray-semi w-2 h-2' />}
-            <p className='ml-3'>
-              <strong>jmamadeu</strong>
-              <br />
-              <span>João Amadeu</span>
-            </p>
-          </div>
+        {data.map((user) => (
+          <>
+            <div className='mt-2 flex justify-between items-center'>
+              <div className='flex items-center'>
+                {user.avatar_url ? (
+                  <Image
+                    loader={() => user.avatar_url}
+                    src='/vercel.svg'
+                    alt={user.login}
+                    width={40}
+                    height={40}
+                    className='rounded-full'
+                  />
+                ) : (
+                  <div className='rounded-full p-6 bg-gray-semi w-2 h-2' />
+                )}
+                <p className='ml-3'>
+                  <strong>{user.login || ' '}</strong>
+                  <br />
+                  <span>{user.name || ' '}</span>
+                </p>
+              </div>
 
-          <span>23</span>
-        </div>
+              <span> {user.total} </span>
+            </div>
+            <hr style={{ height: 1.5 }} className='w-full bg-gray-semi' />
+          </>
+        ))}
       </div>
     </>
   );
