@@ -1,9 +1,96 @@
 import Head from 'next/head';
+import { useState } from 'react';
 
-import { FiSearch } from 'react-icons/fi';
 import { GithubProfileList } from '../components';
+import GithubInputSearch from '../components/githubInpuSearch/githubInputSearch';
+import api from '../services/api';
+
+interface GithubUsersProps {
+  login: string;
+  type: 'User' | 'Organization';
+  url: string;
+}
+
+interface GithubUserProfileProps {
+  login: string;
+  name: string;
+  avatar_url: string;
+}
 
 export default function Home() {
+  const [githubUsers, setGithubUsers] = useState<GithubUsersProps[] | null>([]);
+
+  const headers = {
+    Authorization: `bearer `,
+  };
+
+  const getGithubUserProfile = async ({ login }: { login: string }) => {
+    try {
+      const headers = {
+        Authorization: `bearer ${2}`,
+      };
+
+      const body = {
+        query: `query {
+      user(login: "${login}") {
+        name
+        contributionsCollection {
+          contributionCalendar {
+            colors
+            totalContributions
+            weeks {
+              contributionDays {
+                color
+                contributionCount
+                date
+                weekday
+              }
+              firstDay
+            }
+          }
+        }
+      }
+    }`,
+      };
+
+      const userProfile = await api.get<GithubUserProfileProps>(`/graphql`, {
+        data: body,
+        headers,
+      });
+
+      return userProfile.data;
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
+  const fetchGithubUsers = async ({ userName }: { userName: string }) => {
+    try {
+      const githubUsers = await api.get<GithubUsersProps[]>(`/search/users`, {
+        params: {
+          q: userName,
+        },
+      });
+
+      const users = githubUsers.data.filter((user) => user.type === 'User');
+      const orgs = githubUsers.data.filter(
+        (user) => user.type === 'Organization'
+      );
+
+      const usersProfiles = await Promise.all(
+        users.map(async ({ login }) => {
+          const userProfile = await getGithubUserProfile({ login });
+
+          return userProfile;
+        })
+      );
+
+      console.log(githubUsers);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+
   return (
     <div>
       <Head>
@@ -18,15 +105,13 @@ export default function Home() {
               Search for Github Users
             </h1>
 
-            <div className='mt-4 flex border rounded border-gray-primary'>
-              <input
-                type='text'
-                className='w-full pl-4 outline-none focus:outline-none text-lg'
-              />
-              <button className='focus:outline-none bg-pink-main p-2 mr-2 mt-2 mb-2'>
-                <FiSearch color='#fff' size={18} />
-              </button>
-            </div>
+            <GithubInputSearch
+              onChange={(e) => {
+                console.log(e.target.value);
+
+                fetchGithubUsers({ userName: 'jmamadeu' });
+              }}
+            />
 
             <section className='mt-6 flex justify-between'>
               <GithubProfileList totalRecords={10} type='USER' style='mr-4' />
