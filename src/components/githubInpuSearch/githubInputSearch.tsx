@@ -12,6 +12,11 @@ const GithubInputSearch: React.FC<GithubInputSearchProps> = ({
         <input
           {...rest}
           type='text'
+          onKeyPress={(e) => {
+            if (e?.key === 'Enter') {
+              onClickButton();
+            }
+          }}
           className='w-full pl-4 outline-none focus:outline-none text-lg'
         />
         <button
