@@ -3,116 +3,124 @@ import { forwardRef, useRef, useState } from 'react';
 
 import { GithubProfileList } from '../components';
 import GithubInputSearch from '../components/githubInpuSearch/githubInputSearch';
+import { GithubUserProfileProps } from '../components/githubProfile/githubProfile.type';
 import api from '../services/api';
 
-interface GithubUsersProps {
-  login: string;
-  type: 'User' | 'Organization';
-  url: string;
-}
-
-interface GithubUserProfileProps {
-  login: string;
-  name: string;
-  avatar_url: string;
-}
+const TOKEN_GITHUB_API = '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';
 
 export default function Home() {
-  const [githubUsers, setGithubUsers] = useState<GithubUsersProps[] | null>([]);
+  const [githubUsers, setGithubUsers] = useState<
+    GithubUserProfileProps[] | null
+  >([]);
   const [userName, setUserName] = useState<string>('');
 
-  const headers = {
-    Authorization: `bearer `,
+  const parseGithubUsers = (userResponse): GithubUserProfileProps => {
+    const { user, organization } = userResponse.data;
+
+    const userParsed = {
+      type: user ? 'User' : 'Organization',
+      name: user?.name || organization?.name,
+      login: user?.login || organization?.login,
+      avatar_url: user?.avatarUrl || organization?.avatarUrl,
+      total:
+        user?.contributionsCollection?.contributionCalendar
+          ?.totalContributions ||
+        organization?.membersWithRole?.totalCount ||
+        0,
+    };
+
+    return userParsed as GithubUserProfileProps;
   };
 
   const getGithubUserProfile = async ({ login }: { login: string }) => {
     try {
       const headers = {
-        Authorization: `bearer ${2}`,
+        Authorization: 'bearer ' + TOKEN_GITHUB_API,
       };
 
       const organizationSchemaFields = `
-
+        name
+        avatarUrl
+        login
+        membersWithRole {
+          totalCount
+        }
       `;
 
-      const body = {
-        query: `
-        query {
-          organization(login: "alien-space") {
-            name
-            avatarUrl
-            login
-            memberStatuses (last: 10) {    
-              edges {
-                node {
-                  user {
-                    name
-                    avatarUrl
-                    login
-                    contributionsCollection {
-                      contributionCalendar {
-                        totalContributions
-                      }  
-                    }
-                  }
-                }
-              }
-            }  
-          }
-
-          user(login: "jmamadeu") {
-            name
-            avatarUrl
-            login
-            contributionsCollection {
-              contributionCalendar {
-              totalContributions
-            }
+      const userSchemaFields = `
+        name
+        avatarUrl
+        login
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
           }
         }
+      `;
 
-      }`,
-      };
+      const body = `
+        query {
+          organization(login: "${login}") {
+            ${organizationSchemaFields}
+          }
 
-      const userProfile = await api.get<GithubUserProfileProps>(`/graphql`, {
-        data: body,
-        headers,
-      });
+          user(login: "${login}") {
+            ${userSchemaFields}
+          }
 
-      return userProfile.data;
+        }`;
+
+      const { data } = await api.post(`/graphql`, { query: body }, { headers });
+
+      const userProfile = parseGithubUsers(data);
+
+      return userProfile;
     } catch (err) {
       console.error(err.message);
     }
   };
 
-  const fetchGithubUsers = async ({ userName }: { userName: string }) => {
+  const fetchGithubUsers = async ({
+    userName,
+  }: {
+    userName: string;
+  }): Promise<{ login: string }[]> => {
     try {
-      const githubUsers = await api.get<GithubUsersProps[]>(`/search/users`, {
+      const githubUsers = await api.get(`/search/users`, {
         params: {
           q: userName,
+          page: 1,
+          per_page: 5,
         },
       });
 
-      const users = githubUsers.data.filter((user) => user.type === 'User');
-      const orgs = githubUsers.data.filter(
-        (user) => user.type === 'Organization'
-      );
+      return githubUsers.data.items;
+    } catch (err) {
+      console.error(err.message);
+      return [];
+    }
+  };
+
+  const handleButtonSearchClick = async () => {
+    try {
+      const githubUsers = await fetchGithubUsers({ userName });
 
       const usersProfiles = await Promise.all(
-        users.map(async ({ login }) => {
+        githubUsers.map(async ({ login }) => {
           const userProfile = await getGithubUserProfile({ login });
 
           return userProfile;
         })
       );
 
-      console.log(githubUsers);
+      setGithubUsers(usersProfiles);
     } catch (err) {
-      console.error(err.message);
+      console.log(err.message);
     }
   };
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const getUsersByType = (type: 'User' | 'Organization') =>
+    githubUsers.filter((user) => user.type === type);
 
   return (
     <div>
@@ -127,23 +135,27 @@ export default function Home() {
             <h1 className='text-gray-bold font-bold text-3xl'>
               Search for Github Users
             </h1>
-            {/* <input ref={inputRef} type='text' /> */}
 
             <GithubInputSearch
               value={userName}
               onChange={(event) => {
-                console.log(event.target.value, 'teste');
-
-                setUserName(event.target.value);
+                setUserName(event?.target?.value);
               }}
               onClickButton={() => {
-                // fetchGithubUsers({ userName: inputRef?.current?. });
+                handleButtonSearchClick();
               }}
             />
 
             <section className='mt-6 flex justify-between'>
-              <GithubProfileList totalRecords={10} type='USER' style='mr-4' />
-              <GithubProfileList totalRecords={12} type='ORG' />
+              <GithubProfileList
+                type='USER'
+                data={getUsersByType('User')}
+                style='mr-4'
+              />
+              <GithubProfileList
+                type='ORG'
+                data={getUsersByType('Organization')}
+              />
             </section>
           </div>
         </section>
