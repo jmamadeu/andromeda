@@ -1,21 +1,27 @@
 import React, { FC, useContext, useMemo, useCallback, useState } from 'react';
-import { getFullGithubUserSchema } from '../components/githubProfile/githubProfile.schema';
 
+import { getFullGithubUserSchema } from '../components/githubProfile/githubProfile.schema';
 import {
   DefaultGithubUserProps,
   GithubUserProfileProps,
   UserTypeProps,
 } from '../components/githubProfile/githubProfile.type';
-import useFetch from './useFetch';
+import api from '../services/api';
+
+type SearchUsersProps = {
+  login: string;
+  page?: number;
+};
 
 type GithubProfileContextProps = {
   githubUsersProfiles: GithubUserProfileProps[];
   getUsersByType?: (userType: UserTypeProps) => GithubUserProfileProps[];
-  handleSearchUsers?: (user: DefaultGithubUserProps) => void;
+  handleSearchUsers?: (handleOptions: SearchUsersProps) => void;
+  isLoadingUsers: boolean;
 };
 
 export const GithubProfilesContext = React.createContext<GithubProfileContextProps>(
-  { githubUsersProfiles: [] }
+  { githubUsersProfiles: [], isLoadingUsers: false }
 );
 
 export const GithubProfilesProvider: FC = ({ children }) => {
@@ -23,12 +29,12 @@ export const GithubProfilesProvider: FC = ({ children }) => {
     GithubUserProfileProps[]
   >([]);
 
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+
   const fetchGithubUsers = useCallback(
     async (user: DefaultGithubUserProps): Promise<DefaultGithubUserProps[]> => {
       try {
-        const { response } = useFetch({
-          path: '/search/users',
-          method: 'POST',
+        const { data } = await api.get('/search/users', {
           params: {
             q: user.login,
             page: 1,
@@ -36,7 +42,7 @@ export const GithubProfilesProvider: FC = ({ children }) => {
           },
         });
 
-        return response.data as DefaultGithubUserProps[];
+        return data.items as DefaultGithubUserProps[];
       } catch (err) {
         console.error(err.message);
         return [];
@@ -48,6 +54,8 @@ export const GithubProfilesProvider: FC = ({ children }) => {
   const handleSearchUsers = useCallback(
     async ({ login }: DefaultGithubUserProps): Promise<void> => {
       try {
+        setIsLoadingUsers(true);
+
         const users = await fetchGithubUsers({ login });
 
         const usersProfiles = await Promise.all(
@@ -59,8 +67,11 @@ export const GithubProfilesProvider: FC = ({ children }) => {
         );
 
         setGithubUsersProfiles(usersProfiles);
+
+        setIsLoadingUsers(false);
       } catch (err) {
         console.log(err.message);
+        setIsLoadingUsers(false);
       }
     },
     []
@@ -69,7 +80,7 @@ export const GithubProfilesProvider: FC = ({ children }) => {
   const getUsersByType = useCallback(
     ({ type }: UserTypeProps) =>
       githubUsersProfiles.filter((user) => user.type === type),
-    []
+    [githubUsersProfiles]
   );
 
   const parseGithubUsers = useCallback(
@@ -95,9 +106,7 @@ export const GithubProfilesProvider: FC = ({ children }) => {
 
   const getGithubUserProfile = useCallback(
     async ({ login }: DefaultGithubUserProps) => {
-      const { response } = useFetch({
-        method: 'POST',
-        path: '/graphql',
+      const response = await api.post('/graphql', {
         query: getFullGithubUserSchema({ login }),
       });
 
@@ -114,8 +123,9 @@ export const GithubProfilesProvider: FC = ({ children }) => {
       githubUsersProfiles,
       handleSearchUsers,
       getUsersByType,
+      isLoadingUsers,
     }),
-    [githubUsersProfiles, handleSearchUsers]
+    [githubUsersProfiles, handleSearchUsers, getUsersByType, isLoadingUsers]
   );
 
   return (

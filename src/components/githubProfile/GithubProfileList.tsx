@@ -16,23 +16,43 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
         </h4>
         <hr className='w-full h-1 bg-gray-bold' />
 
-        <div className='flex flex-col mt-4'>
-          <div className=' flex justify-between'>
-            <span className='flex items-center'>
-              {type === 'User' ? `User` : `Company`}
-              <FiChevronDown className='' />
-            </span>
-            <span className='flex items-center justify-center text-gray-semi'>
-              {type === 'User' ? 'Contributions' : 'People'} <FiChevronDown />
-            </span>
+        {!data.length && (
+          <div className='text-lg text-gray-secondary mt-10 text-center'>
+            <div className='flex flex-col items-center'>
+              <span className='text-gray-primary text-center items-center text-5xl'>
+                0
+              </span>
+              <h5>
+                Hmmm... We didn't find any
+                {type === 'User' ? ' users' : ' organizations'}...
+              </h5>
+            </div>
           </div>
+        )}
 
-          <hr style={{ height: 1.5 }} className='w-full bg-gray-semi' />
-        </div>
+        {(data?.length && (
+          <div className='flex flex-col mt-4'>
+            <div className=' flex justify-between'>
+              <span className='flex items-center'>
+                {type === 'User' ? `User` : `Company`}
+                <FiChevronDown className='' />
+              </span>
+              <span className='flex items-center justify-center text-gray-semi'>
+                {type === 'User' ? 'Contributions' : 'People'} <FiChevronDown />
+              </span>
+            </div>
+
+            <hr style={{ height: 1.5 }} className='w-full bg-gray-semi' />
+          </div>
+        )) ||
+          ''}
 
         {data.map((user) => (
           <>
-            <div className='mt-2 flex justify-between items-center'>
+            <div
+              key={user.login + 'user'}
+              className='mt-2 flex justify-between items-center'
+            >
               <div className='flex items-center'>
                 {user.avatar_url ? (
                   <Image
@@ -55,7 +75,11 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
 
               <span> {user.total} </span>
             </div>
-            <hr style={{ height: 1.5 }} className='w-full bg-gray-semi' />
+            <hr
+              key={user.login + 'divider'}
+              style={{ height: 1.5 }}
+              className='w-full bg-gray-semi'
+            />
           </>
         ))}
       </div>
