@@ -12,18 +12,18 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
     <>
       <div className={`${style} w-full`}>
         <h4 className='uppercase font-bold mb-1'>
-          {type === 'USER' ? `Users` : 'Companies'} ( {data.length} )
+          {type === 'User' ? `Users` : 'Companies'} ( {data.length} )
         </h4>
         <hr className='w-full h-1 bg-gray-bold' />
 
         <div className='flex flex-col mt-4'>
           <div className=' flex justify-between'>
             <span className='flex items-center'>
-              {type === 'USER' ? `User` : `Company`}
+              {type === 'User' ? `User` : `Company`}
               <FiChevronDown className='' />
             </span>
             <span className='flex items-center justify-center text-gray-semi'>
-              {type === 'USER' ? 'Contributions' : 'People'} <FiChevronDown />
+              {type === 'User' ? 'Contributions' : 'People'} <FiChevronDown />
             </span>
           </div>
 
