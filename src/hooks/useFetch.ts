@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios';
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 
@@ -13,7 +14,7 @@ type FetchProps = {
 };
 
 const useFetch = ({ path, query, method, params, headers }: FetchProps) => {
-  const [response, setResponse] = useState<null | Response>(null);
+  const [response, setResponse] = useState<null | AxiosResponse>(null);
   const [error, setError] = useState<Error | null>();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,7 +30,7 @@ const useFetch = ({ path, query, method, params, headers }: FetchProps) => {
                 params,
               });
 
-        setResponse(response.data);
+        setResponse(response);
         setIsLoading(false);
       } catch (error) {
         setError(error);
