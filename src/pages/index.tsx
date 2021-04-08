@@ -6,7 +6,7 @@ import GithubInputSearch from '../components/githubInpuSearch/githubInputSearch'
 import { GithubUserProfileProps } from '../components/githubProfile/githubProfile.type';
 import api from '../services/api';
 
-const TOKEN_GITHUB_API = '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';
+const TOKEN_GITHUB_API = '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';
 
 export default function Home() {
   const [githubUsers, setGithubUsers] = useState<
@@ -77,6 +77,7 @@ export default function Home() {
       return userProfile;
     } catch (err) {
       console.error(err.message);
+      return {} as GithubUserProfileProps;
     }
   };
 
@@ -120,7 +121,7 @@ export default function Home() {
   };
 
   const getUsersByType = (type: 'User' | 'Organization') =>
-    githubUsers.filter((user) => user.type === type);
+    githubUsers.filter((user) => user?.type === type);
 
   return (
     <div>
