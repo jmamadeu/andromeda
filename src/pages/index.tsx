@@ -14,6 +14,9 @@ export default function Home() {
     getUsersByType,
     handleSearchUsers,
     isLoadingUsers,
+    clearUsersList,
+    githubUsersProfiles,
+    showMoreUsers,
   } = useGithubProfiles();
 
   return (
@@ -34,6 +37,8 @@ export default function Home() {
               value={userName}
               onChange={(event) => {
                 setUserName(event?.target?.value);
+
+                if (!event.target.value) clearUsersList();
               }}
               onClickButton={() => {
                 handleSearchUsers({ login: userName });
@@ -61,17 +66,34 @@ export default function Home() {
             )}
 
             {userName && !isLoadingUsers && (
-              <section className='mt-6 flex justify-between'>
-                <GithubProfileList
-                  type='User'
-                  data={getUsersByType({ type: 'User' })}
-                  style='mr-4'
-                />
-                <GithubProfileList
-                  type='Organization'
-                  data={getUsersByType({ type: 'Organization' })}
-                />
-              </section>
+              <>
+                <h4 className='uppercase font-bold mb-1 mt-4'>
+                  Users find ( {githubUsersProfiles?.total} )
+                </h4>
+
+                <section className='mt-6 flex justify-between overflow-scroll overflow-x-auto overflow-y-auto h-96'>
+                  <GithubProfileList
+                    type='User'
+                    data={getUsersByType({ type: 'User' })}
+                    style='mr-4'
+                  />
+                  <GithubProfileList
+                    type='Organization'
+                    data={getUsersByType({ type: 'Organization' })}
+                  />
+                </section>
+
+                <div className='flex  items-center justify-center mt-8'>
+                  <button
+                    onClick={() => {
+                      showMoreUsers(userName);
+                    }}
+                    className='bg-gray-primary p-2 text-base focus:outline-none'
+                  >
+                    Show more
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </section>
