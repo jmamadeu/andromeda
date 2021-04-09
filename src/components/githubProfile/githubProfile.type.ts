@@ -1,7 +1,12 @@
 export type GithubProfileListProps = {
   type: 'User' | 'Organization';
   style?: string;
-  data?: GithubUserProfileProps[];
+  data?: GithubDataProps;
+};
+
+export type GithubDataProps = {
+  total?: number;
+  users: GithubUserProfileProps[];
 };
 
 export type GithubUserProfileProps = {

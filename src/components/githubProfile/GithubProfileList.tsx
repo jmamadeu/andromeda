@@ -6,17 +6,17 @@ import Image from 'next/image';
 const GithubProfileList: React.FC<GithubProfileListProps> = ({
   style,
   type,
-  data = [],
+  data,
 }) => {
   return (
     <>
       <div className={`${style} w-full`}>
         <h4 className='uppercase font-bold mb-1'>
-          {type === 'User' ? `Users` : 'Companies'} ( {data.length} )
+          {type === 'User' ? `Users` : 'Companies'} ( {data.users.length} )
         </h4>
         <hr className='w-full h-1 bg-gray-bold' />
 
-        {!data.length && (
+        {!data?.users.length && (
           <div className='text-lg text-gray-secondary mt-10 text-center'>
             <div className='flex flex-col items-center'>
               <span className='text-gray-primary text-center items-center text-5xl'>
@@ -30,7 +30,7 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
           </div>
         )}
 
-        {(data?.length && (
+        {(data?.users?.length && (
           <div className='flex flex-col mt-4'>
             <div className=' flex justify-between'>
               <span className='flex items-center'>
@@ -47,10 +47,10 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
         )) ||
           ''}
 
-        {data.map((user) => (
-          <>
+        {data?.users?.map((user, i) => (
+          <div key={i + 'user'}>
             <div
-              key={user.login + 'user'}
+              key={user.login + 'user' + Math.random()}
               className='mt-2 flex justify-between items-center'
             >
               <div className='flex items-center'>
@@ -76,11 +76,11 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
               <span> {user.total} </span>
             </div>
             <hr
-              key={user.login + 'divider'}
+              key={user.login + 'divider' + Math.random()}
               style={{ height: 1.5 }}
               className='w-full bg-gray-semi'
             />
-          </>
+          </div>
         ))}
       </div>
     </>
