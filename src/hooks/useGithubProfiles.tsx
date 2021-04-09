@@ -3,6 +3,7 @@ import React, { FC, useContext, useMemo, useCallback, useState } from 'react';
 import { getFullGithubUserSchema } from '../components/githubProfile/githubProfile.schema';
 import {
   DefaultGithubUserProps,
+  GithubDataProps,
   GithubUserProfileProps,
   UserTypeProps,
 } from '../components/githubProfile/githubProfile.type';
@@ -14,35 +15,55 @@ type SearchUsersProps = {
 };
 
 type GithubProfileContextProps = {
-  githubUsersProfiles: GithubUserProfileProps[];
-  getUsersByType?: (userType: UserTypeProps) => GithubUserProfileProps[];
+  githubUsersProfiles: GithubDataProps;
+  getUsersByType?: (userType: UserTypeProps) => GithubDataProps;
   handleSearchUsers?: (handleOptions: SearchUsersProps) => void;
   isLoadingUsers: boolean;
+  clearUsersList?: () => void;
+  showMoreUsers?: (userName: string) => void;
 };
 
 export const GithubProfilesContext = React.createContext<GithubProfileContextProps>(
-  { githubUsersProfiles: [], isLoadingUsers: false }
+  { githubUsersProfiles: {} as GithubDataProps, isLoadingUsers: false }
 );
 
 export const GithubProfilesProvider: FC = ({ children }) => {
-  const [githubUsersProfiles, setGithubUsersProfiles] = useState<
-    GithubUserProfileProps[]
-  >([]);
+  const [
+    githubUsersProfiles,
+    setGithubUsersProfiles,
+  ] = useState<GithubDataProps | null>(null);
 
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
+  const clearUsersList = () =>
+    setGithubUsersProfiles({
+      users: [],
+      total: 0,
+    });
+
+  const showMoreUsers = useCallback(
+    (userName: string) => {
+      const nextUsersPage = githubUsersProfiles?.users?.length + 5;
+
+      console.log(nextUsersPage, githubUsersProfiles?.users?.length);
+
+      handleSearchUsers({ page: nextUsersPage, login: userName });
+    },
+    [githubUsersProfiles]
+  );
+
   const fetchGithubUsers = useCallback(
-    async (user: DefaultGithubUserProps): Promise<DefaultGithubUserProps[]> => {
+    async (user: DefaultGithubUserProps, page: number = 5) => {
       try {
         const { data } = await api.get('/search/users', {
           params: {
             q: user.login,
-            page: 1,
-            per_page: 5,
+
+            per_page: page,
           },
         });
 
-        return data.items as DefaultGithubUserProps[];
+        return data;
       } catch (err) {
         console.error(err.message);
         return [];
@@ -52,21 +73,24 @@ export const GithubProfilesProvider: FC = ({ children }) => {
   );
 
   const handleSearchUsers = useCallback(
-    async ({ login }: DefaultGithubUserProps): Promise<void> => {
+    async ({ login, page }: SearchUsersProps): Promise<void> => {
       try {
         setIsLoadingUsers(true);
 
-        const users = await fetchGithubUsers({ login });
+        const users = await fetchGithubUsers({ login }, page);
 
         const usersProfiles = await Promise.all(
-          users.map(async ({ login }) => {
+          users.items.map(async ({ login }) => {
             const userProfile = await getGithubUserProfile({ login });
 
-            return userProfile;
+            return userProfile as GithubUserProfileProps;
           })
         );
 
-        setGithubUsersProfiles(usersProfiles);
+        setGithubUsersProfiles({
+          total: users.total_count,
+          users: usersProfiles as GithubUserProfileProps[],
+        });
 
         setIsLoadingUsers(false);
       } catch (err) {
@@ -78,8 +102,15 @@ export const GithubProfilesProvider: FC = ({ children }) => {
   );
 
   const getUsersByType = useCallback(
-    ({ type }: UserTypeProps) =>
-      githubUsersProfiles.filter((user) => user.type === type),
+    ({ type }: UserTypeProps) => {
+      const usersFilters =
+        githubUsersProfiles?.users?.filter((user) => user.type === type) || [];
+
+      return {
+        users: usersFilters,
+        total: githubUsersProfiles?.total,
+      };
+    },
     [githubUsersProfiles]
   );
 
@@ -124,8 +155,17 @@ export const GithubProfilesProvider: FC = ({ children }) => {
       handleSearchUsers,
       getUsersByType,
       isLoadingUsers,
+      clearUsersList,
+      showMoreUsers,
     }),
-    [githubUsersProfiles, handleSearchUsers, getUsersByType, isLoadingUsers]
+    [
+      githubUsersProfiles,
+      handleSearchUsers,
+      getUsersByType,
+      isLoadingUsers,
+      clearUsersList,
+      showMoreUsers,
+    ]
   );
 
   return (
