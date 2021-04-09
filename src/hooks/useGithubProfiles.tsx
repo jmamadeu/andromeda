@@ -45,8 +45,6 @@ export const GithubProfilesProvider: FC = ({ children }) => {
     (userName: string) => {
       const nextUsersPage = githubUsersProfiles?.users?.length + 5;
 
-      console.log(nextUsersPage, githubUsersProfiles?.users?.length);
-
       handleSearchUsers({ page: nextUsersPage, login: userName });
     },
     [githubUsersProfiles]
