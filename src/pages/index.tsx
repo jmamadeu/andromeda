@@ -1,126 +1,23 @@
 import Head from 'next/head';
-import { forwardRef, useRef, useState } from 'react';
+import { useState } from 'react';
 
 import { GithubProfileList } from '../components';
 import GithubInputSearch from '../components/githubInpuSearch/githubInputSearch';
-import { GithubUserProfileProps } from '../components/githubProfile/githubProfile.type';
-import api from '../services/api';
+import { useGithubProfiles } from '../hooks/useGithubProfiles';
 
-const TOKEN_GITHUB_API = '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';
+import { FiSearch } from 'react-icons/fi';
 
 export default function Home() {
-  const [githubUsers, setGithubUsers] = useState<
-    GithubUserProfileProps[] | null
-  >([]);
   const [userName, setUserName] = useState<string>('');
 
-  const parseGithubUsers = (userResponse): GithubUserProfileProps => {
-    const { user, organization } = userResponse.data;
-
-    const userParsed = {
-      type: user ? 'User' : 'Organization',
-      name: user?.name || organization?.name,
-      login: user?.login || organization?.login,
-      avatar_url: user?.avatarUrl || organization?.avatarUrl,
-      total:
-        user?.contributionsCollection?.contributionCalendar
-          ?.totalContributions ||
-        organization?.membersWithRole?.totalCount ||
-        0,
-    };
-
-    return userParsed as GithubUserProfileProps;
-  };
-
-  const getGithubUserProfile = async ({ login }: { login: string }) => {
-    try {
-      const headers = {
-        Authorization: 'bearer ' + TOKEN_GITHUB_API,
-      };
-
-      const organizationSchemaFields = `
-        name
-        avatarUrl
-        login
-        membersWithRole {
-          totalCount
-        }
-      `;
-
-      const userSchemaFields = `
-        name
-        avatarUrl
-        login
-        contributionsCollection {
-          contributionCalendar {
-            totalContributions
-          }
-        }
-      `;
-
-      const body = `
-        query {
-          organization(login: "${login}") {
-            ${organizationSchemaFields}
-          }
-
-          user(login: "${login}") {
-            ${userSchemaFields}
-          }
-
-        }`;
-
-      const { data } = await api.post(`/graphql`, { query: body }, { headers });
-
-      const userProfile = parseGithubUsers(data);
-
-      return userProfile;
-    } catch (err) {
-      console.error(err.message);
-    }
-  };
-
-  const fetchGithubUsers = async ({
-    userName,
-  }: {
-    userName: string;
-  }): Promise<{ login: string }[]> => {
-    try {
-      const githubUsers = await api.get(`/search/users`, {
-        params: {
-          q: userName,
-          page: 1,
-          per_page: 5,
-        },
-      });
-
-      return githubUsers.data.items;
-    } catch (err) {
-      console.error(err.message);
-      return [];
-    }
-  };
-
-  const handleButtonSearchClick = async () => {
-    try {
-      const githubUsers = await fetchGithubUsers({ userName });
-
-      const usersProfiles = await Promise.all(
-        githubUsers.map(async ({ login }) => {
-          const userProfile = await getGithubUserProfile({ login });
-
-          return userProfile;
-        })
-      );
-
-      setGithubUsers(usersProfiles);
-    } catch (err) {
-      console.log(err.message);
-    }
-  };
-
-  const getUsersByType = (type: 'User' | 'Organization') =>
-    githubUsers.filter((user) => user.type === type);
+  const {
+    getUsersByType,
+    handleSearchUsers,
+    isLoadingUsers,
+    clearUsersList,
+    githubUsersProfiles,
+    showMoreUsers,
+  } = useGithubProfiles();
 
   return (
     <div>
@@ -140,23 +37,64 @@ export default function Home() {
               value={userName}
               onChange={(event) => {
                 setUserName(event?.target?.value);
+
+                if (!event.target.value) clearUsersList();
               }}
               onClickButton={() => {
-                handleButtonSearchClick();
+                handleSearchUsers({ login: userName });
               }}
             />
 
-            <section className='mt-6 flex justify-between'>
-              <GithubProfileList
-                type='USER'
-                data={getUsersByType('User')}
-                style='mr-4'
-              />
-              <GithubProfileList
-                type='ORG'
-                data={getUsersByType('Organization')}
-              />
-            </section>
+            {isLoadingUsers && (
+              <div className='text-xl text-gray-secondary mt-10 text-center'>
+                <div className='flex flex-col items-center'>
+                  <h5>Loading users...</h5>
+                </div>
+              </div>
+            )}
+
+            {!userName && (
+              <div className='text-2xl text-gray-secondary mt-10 text-center'>
+                <div className='flex flex-col items-center'>
+                  <FiSearch
+                    size={60}
+                    className='text-gray-primary text-center items-center'
+                  />
+                  <h5>Enter a login, name or company you are looking for.</h5>
+                </div>
+              </div>
+            )}
+
+            {userName && !isLoadingUsers && (
+              <>
+                <h4 className='uppercase font-bold mb-1 mt-4'>
+                  Users find ( {githubUsersProfiles?.total} )
+                </h4>
+
+                <section className='mt-6 flex justify-between overflow-scroll overflow-x-auto overflow-y-auto h-96'>
+                  <GithubProfileList
+                    type='User'
+                    data={getUsersByType({ type: 'User' })}
+                    style='mr-4'
+                  />
+                  <GithubProfileList
+                    type='Organization'
+                    data={getUsersByType({ type: 'Organization' })}
+                  />
+                </section>
+
+                <div className='flex  items-center justify-center mt-8'>
+                  <button
+                    onClick={() => {
+                      showMoreUsers(userName);
+                    }}
+                    className='bg-gray-primary p-2 text-base focus:outline-none'
+                  >
+                    Show more
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </section>
       </main>

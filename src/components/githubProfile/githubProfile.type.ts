@@ -1,7 +1,12 @@
 export type GithubProfileListProps = {
-  type: 'USER' | 'ORG';
+  type: 'User' | 'Organization';
   style?: string;
-  data?: GithubUserProfileProps[];
+  data?: GithubDataProps;
+};
+
+export type GithubDataProps = {
+  total?: number;
+  users: GithubUserProfileProps[];
 };
 
 export type GithubUserProfileProps = {
@@ -9,5 +14,13 @@ export type GithubUserProfileProps = {
   avatar_url: string;
   total: string;
   login: string;
+  type: 'User' | 'Organization';
+};
+
+export type DefaultGithubUserProps = {
+  login: string;
+};
+
+export type UserTypeProps = {
   type: 'User' | 'Organization';
 };
