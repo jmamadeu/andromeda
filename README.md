@@ -1,34 +1,46 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<h1 align="center">
+  Andromeda
+</h1>
 
-## Getting Started
+Search github users and organizations, contributions and people fastly
 
-First, run the development server:
+<h4 align="center"> 
+	🚧 Andromeda...  🚧
+</h4>
+
+## :construction_worker: Installation
+
+You will need to install
+
+- [Node.js](https://nodejs.org)
+- [Yarn](https://yarnpkg.com/)
+
+## :sparkles: Running the Project
 
 ```bash
-npm run dev
-# or
-yarn dev
+$ git clone https://github.com/jmamadeu/andromeda.git # Clone this repository to your machine
+$ cd andromeda # Enter in the project folder
+$ yarn # Install all dependencies
+
+$ yarn dev # Running the project
+$ yarn test # Running the tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<p>
+Att: To load companies members you need to have a github token. Go to [Creating_a_personal_access_token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
+<br />
+So, now go to the `src/services/api.ts` and add your token  `TOKEN_GITHUB_API`;
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+</p>
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+:tada: Congratulations, the project is running
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## :bulb: Contributing
 
-## Learn More
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-To learn more about Next.js, take a look at the following resources:
+Please make sure to update tests as appropriate.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## :bookmark: License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+[MIT](https://choosealicense.com/licenses/mit/)
