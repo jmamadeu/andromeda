@@ -1,11 +1,13 @@
-import { render, screen } from '@testing-library/react'; // (or /dom, /vue, ...)
+import { getByTestId, render, screen } from '@testing-library/react';
+
 import GithubProfileList from './GithubProfileList';
 
-test('should show login form', () => {
-  const { debug } = render(
-    <GithubProfileList data={{ total: 0, users: [] }} type='User' />
-  );
+describe('Github User Profile', () => {
+  test('should show numbers of users loaded', () => {
+    render(<GithubProfileList data={{ total: 0, users: [] }} type='User' />);
 
-  debug();
-  // Events and assertions...
+    const elementCounter = screen.getByTestId('element-counter');
+
+    expect(elementCounter.textContent).toBe('0');
+  });
 });
