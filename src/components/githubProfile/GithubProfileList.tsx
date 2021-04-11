@@ -19,7 +19,10 @@ const GithubProfileList: React.FC<GithubProfileListProps> = ({
         {!data?.users.length && (
           <div className='text-lg text-gray-secondary mt-10 text-center'>
             <div className='flex flex-col items-center'>
-              <span className='text-gray-primary text-center items-center text-5xl'>
+              <span
+                data-testid='element-counter'
+                className='text-gray-primary text-center items-center text-5xl'
+              >
                 0
               </span>
               <h5>
